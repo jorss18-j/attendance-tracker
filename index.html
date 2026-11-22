@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Attendance Tracker</title>
+<style>
+:root{--bg1:#dbeafe;--bg2:#ccfbf1;--card:#ffffffd9;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--brand:#1d4ed8;--brand2:#0891b2;--p:#16a34a;--l:#d97706;--a:#dc2626;--e:#2563eb;--input:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#0f172a;--bg2:#134e4a;--card:#1e293bd9;--text:#f1f5f9;--muted:#94a3b8;--line:#334155;--input:#0f172a}}
+:root[data-theme="dark"]{--bg1:#0f172a;--bg2:#134e4a;--card:#1e293bd9;--text:#f1f5f9;--muted:#94a3b8;--line:#334155;--input:#0f172a}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--text);background:linear-gradient(135deg,var(--bg1),var(--bg2)) fixed;min-height:100vh}
+.wrap{max-width:1000px;margin:0 auto;padding:16px}
+header{background:linear-gradient(120deg,var(--brand),var(--brand2));color:#fff;border-radius:20px;padding:22px;box-shadow:0 10px 30px #1d4ed855}
+header h1{margin:0;font-size:1.6rem}header p{margin:4px 0 0;opacity:.9}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin:14px 0}
+.stat{background:var(--card);border-radius:16px;padding:12px;text-align:center;border-top:4px solid var(--c);backdrop-filter:blur(6px)}
+.stat b{display:block;font-size:1.5rem;color:var(--c)}.stat span{font-size:.8rem;color:var(--muted)}
+.tabs{display:flex;gap:8px;margin:14px 0 12px;flex-wrap:wrap}
+.tab{flex:1 1 140px;padding:12px;border:0;border-radius:14px;background:var(--card);color:var(--text);font-weight:700;cursor:pointer;font-size:.95rem}
+.tab.on{background:linear-gradient(120deg,var(--brand),var(--brand2));color:#fff}
+.card{background:var(--card);border-radius:18px;padding:16px;backdrop-filter:blur(6px);box-shadow:0 4px 18px #0000001a;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:1.1rem}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+input,select{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--input);color:var(--text);font-size:.95rem;min-width:0}
+input:focus,select:focus{outline:2px solid var(--brand)}
+.grow{flex:1 1 150px}
+.btn{padding:10px 14px;border:0;border-radius:10px;font-weight:700;cursor:pointer;color:#fff;background:var(--brand)}
+.btn.g{background:var(--p)}.btn.o{background:var(--muted)}
+.btn:hover{filter:brightness(1.1)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:.8rem;color:var(--muted);padding:8px;text-transform:uppercase}
+td{padding:8px;border-top:1px solid var(--line);vertical-align:middle}
+.id{color:var(--muted);font-size:.85rem}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:6px 10px;border-radius:999px;border:2px solid var(--c);background:transparent;color:var(--c);font-weight:700;cursor:pointer;font-size:.8rem}
+.chip.on{background:var(--c);color:#fff}
+.P{--c:var(--p)}.L{--c:var(--l)}.A{--c:var(--a)}.E{--c:var(--e)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:14px}
+.empty{text-align:center;color:var(--muted);padding:26px}
+.del{background:none;border:0;cursor:pointer;font-size:1.1rem}
+.folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
+.folder{background:var(--input);border:1px solid var(--line);border-top:4px solid var(--brand2);border-radius:14px;padding:12px;text-align:center}
+.folder .ic{font-size:2rem}.folder b{display:block;font-size:1.1rem}
+.folder .acts{display:flex;gap:6px;justify-content:center;margin-top:8px}
+.folder .acts button{border:0;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700;background:var(--brand);color:#fff}
+.folder .acts button.x{background:#dc2626}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pill{background:var(--input);border:1px solid var(--line);border-radius:999px;padding:6px 6px 6px 12px;font-weight:600}
+.pill button{border:0;background:var(--line);color:var(--text);border-radius:50%;width:24px;height:24px;cursor:pointer;margin-left:6px}
+.meter{display:inline-block;width:70px;height:8px;background:var(--line);border-radius:6px;overflow:hidden;vertical-align:middle;margin-right:6px}.meter i{display:block;height:100%}
+@media print{header,.tabs,.bar,#toast,#modal,section:not(#rep),#rep .id:last-child{display:none!important}body{background:#fff}.card{box-shadow:none;background:#fff;color:#000}}
+#modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:20;padding:16px}#modal[hidden]{display:none}.mbox{background:var(--input);color:var(--text);border-radius:16px;padding:20px;max-width:360px;width:100%}.mbox p{margin:0 0 16px;line-height:1.4}.mbtn{display:flex;gap:8px;justify-content:flex-end}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(80px);background:#111827;color:#fff;padding:12px 18px;border-radius:12px;transition:.3s;opacity:0;z-index:9}
+#toast.show{transform:translateX(-50%);opacity:1}
+.theme{float:right;background:#ffffff33;border:0;color:#fff;border-radius:10px;padding:6px 10px;cursor:pointer}
+#auth{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;background:linear-gradient(135deg,var(--bg1),var(--bg2))}
+#auth[hidden]{display:none}
+.abox{background:var(--card);color:var(--text);border-radius:22px;padding:26px 22px;width:100%;max-width:380px;box-shadow:0 10px 30px #0003;text-align:center}
+.abox h1{margin:4px 0 2px;font-size:1.4rem}.alogo{font-size:2.4rem}
+.abox input:not([type=checkbox]){display:block;width:100%;margin:8px 0}
+.abox input[hidden]{display:none}
+.atabs{display:flex;gap:8px;margin:14px 0 6px}
+.atab{flex:1;padding:10px;border:0;border-radius:12px;background:var(--input);color:var(--text);font-weight:700;cursor:pointer}
+.atab.on{background:linear-gradient(120deg,var(--brand),var(--brand2));color:#fff}
+.keep{display:flex;gap:8px;align-items:center;font-size:.85rem;color:var(--muted);text-align:left;margin:6px 0}
+.aerr{color:var(--a);min-height:1.2em;margin:6px 0;font-size:.88rem;font-weight:600}
+.hdr-r{float:right;display:flex;gap:8px;align-items:center;font-size:.85rem}.hdr-r .theme{float:none}
+.bulk{position:sticky;top:6px;z-index:6;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--input);border:2px solid var(--brand);border-radius:14px;padding:10px;margin-bottom:12px;box-shadow:0 6px 18px #0003}
+.bulk[hidden]{display:none}
+.bulk .chip{background:var(--c);color:#fff}
+.D{--c:#64748b}
+tr[data-row]{cursor:pointer}tr.sel td{background:#2563eb22}tr.drp td b{text-decoration:line-through;opacity:.6}
+td input[type=checkbox],#selall{width:18px;height:18px;accent-color:var(--brand)}
+.sbtn{display:block;width:100%;margin:8px 0;padding:12px;font-size:.95rem}
+.sbtn[hidden]{display:none}
+.sbtn[data-s=google]{background:#fff;color:#111;border:1px solid #cbd5e1}
+.sbtn[data-s=facebook]{background:#1877f2}.sbtn[data-s=apple]{background:#000}
+</style>
+</head>
+<body>
+<script>
+/* ===== PASTE YOUR FIREBASE CONFIG HERE (see README.md) ===== */
+window.FIREBASE_CONFIG={apiKey:"AIzaSyCM21CTlPp6ueefSX3Z6y_1NAKcwYjuUbg",authDomain:"simple-attendance-system-61807.firebaseapp.com",projectId:"simple-attendance-system-61807",appId:"1:970727050247:web:587bc0914a87a123f4eea2"};
+/* Set a method to false to hide its button */
+window.LOGIN_METHODS={google:true,facebook:true,apple:true,phone:true};
+</script>
+<div id="auth"><div class="abox"><div class="alogo">📋</div><h1>Attendance Tracker</h1><p class="id" style="margin:0">Teacher login</p>
+<div id="social" hidden>
+<button class="btn sbtn" data-s="google">Continue with Google</button>
+<button class="btn sbtn" data-s="facebook">Continue with Facebook</button>
+<button class="btn sbtn" data-s="apple">Continue with Apple</button>
+<button class="btn sbtn o" id="phbtn">📱 Continue with phone number</button>
+<div id="phbox" hidden><input id="pnum" type="tel" placeholder="+63 917 123 4567" autocomplete="tel"><button class="btn" id="psend" style="width:100%">Send code</button><input id="pcode" inputmode="numeric" placeholder="6-digit code" autocomplete="one-time-code" hidden><button class="btn g" id="pver" style="width:100%;margin-top:8px" hidden>Verify &amp; log in</button></div>
+<div id="recap"></div><p class="aerr" id="serr"></p>
+<p class="id" style="margin:8px 0 0;font-size:.8rem">Your students and attendance are saved to your account, so they follow you to any phone, tablet or computer.</p>
+</div>
+<div id="localauth">
+<div class="atabs"><button class="atab on" id="atl">Log in</button><button class="atab" id="atr">Create account</button></div>
+<input id="aname" placeholder="Full name (e.g. Prof. Santos)" autocomplete="name" hidden>
+<input id="auser" placeholder="Username" autocomplete="username" autocapitalize="none">
+<input id="apass" type="password" placeholder="Password" autocomplete="current-password">
+<input id="aconf" type="password" placeholder="Confirm password" autocomplete="new-password" hidden>
+<label class="keep"><input type="checkbox" id="akeep"> Keep me signed in on this device</label>
+<p id="aerr" class="aerr"></p><button class="btn" id="authgo" style="width:100%">Log in</button>
+<p class="id" style="margin:12px 0 0;font-size:.8rem">Accounts and attendance are saved in this browser only. Each teacher sees only their own sections.</p></div></div></div>
+<div class="wrap" id="app" hidden>
+<header><div class="hdr-r"><span id="sync"></span><span id="who"></span><button class="theme" id="logout">Log out</button><button class="theme" id="theme" title="Toggle dark mode">🌓</button></div><h1>📋 Attendance Tracker</h1><p>Create section folders and subjects, add students, then tap a status to mark attendance.</p></header>
+
+<div class="tabs">
+<button class="tab" data-tab="att">✅ Attendance</button>
+<button class="tab" data-tab="stu">🎓 Students</button>
+<button class="tab" data-tab="sec">📁 Sections &amp; Subjects</button>
+<button class="tab" data-tab="rep">📊 Reports</button>
+</div>
+
+<section id="att" hidden>
+<div class="card">
+<div class="bar">
+<select id="asec" title="Section"></select>
+<select id="asub" title="Subject"></select>
+<input type="date" id="date">
+</div>
+<div class="stats" id="stats"></div>
+<div class="bar">
+<input class="grow" id="asearch" placeholder="🔍 Search name or ID…">
+<button class="btn o" id="selun" title="Select students with no status yet">☑️ Select unmarked</button>
+<button class="btn g" id="allP">Mark all present</button>
+</div>
+<div class="bulk" id="bulk" hidden><b id="bcount"></b><button class="chip P" data-b="Present">✅ Present</button><button class="chip L" data-b="Late">⏰ Late</button><button class="chip A" data-b="Absent">❌ Absent</button><button class="chip E" data-b="Excused">📝 Excused</button><button class="chip D" data-b="Dropped">🚫 Dropped</button><button class="chip" data-b="clear" style="--c:var(--muted)">↩️ Clear</button><button class="chip" id="bnone" style="--c:var(--muted)">✖ Deselect</button></div>
+<div class="scroll"><table><thead><tr><th style="width:36px"><input type="checkbox" id="selall" title="Select all shown"></th><th>ID</th><th>Name</th><th>Status</th><th>Action</th></tr></thead><tbody id="abody"></tbody></table></div>
+</div>
+</section>
+
+<section id="stu" hidden>
+<div class="card">
+<h2>Add a student</h2>
+<div class="form">
+<input id="sid" placeholder="Student ID">
+<input id="sname" placeholder="Full name">
+<select id="ssecSel"></select>
+<button class="btn" id="add">＋ Add student</button><button class="btn o" id="cancelEdit" hidden>Cancel edit</button>
+</div>
+<div class="bar"><input class="grow" id="ssearch" placeholder="🔍 Search students…"><select id="sfilt"></select><span id="scount" class="id" style="align-self:center"></span></div>
+<div class="scroll"><table><thead><tr><th>ID</th><th>Name</th><th>Section</th><th></th></tr></thead><tbody id="sbody"></tbody></table></div>
+</div>
+</section>
+
+<section id="sec" hidden>
+<div class="card">
+<h2>📁 Section folders</h2>
+<div class="bar"><input class="grow" id="secname" placeholder="New section, e.g. 1A"><button class="btn" id="addsec">＋ Create folder</button></div>
+<div class="folders" id="folders"></div>
+</div>
+<div class="card">
+<h2>📚 Subjects</h2>
+<div class="bar"><input class="grow" id="subname" placeholder="New subject, e.g. Mathematics"><button class="btn" id="addsub">＋ Add subject</button></div>
+<div class="pills" id="pills"></div>
+</div>
+</section>
+<section id="rep" hidden>
+<div class="card">
+<h2>📊 Attendance reports</h2>
+<div class="bar"><select id="rsec" title="Section"></select><select id="rsub" title="Subject"></select><select id="rper" title="Period"><option value="day">Daily</option><option value="week">Weekly</option><option value="month">Monthly</option><option value="all">All dates</option></select><input type="date" id="rdate"></div>
+<div class="bar"><button class="btn" id="rcsv">⬇️ Download CSV (Excel)</button><button class="btn o" id="rprint">🖨️ Print / Save as PDF</button></div>
+<p id="rtitle" style="font-weight:700;margin:6px 0"></p>
+<div class="scroll"><table><thead><tr><th>ID</th><th>Student</th><th>Present</th><th>Absent</th><th>Late</th><th>Excused</th><th>Dropped</th><th>Classes</th><th>Attendance</th></tr></thead><tbody id="rbody"></tbody></table></div>
+<p class="id">Attendance % = (Present + Late) ÷ classes recorded. Tap a student to see their full record. ⚠️ means below 75%. Dropped days are not counted.</p>
+</div>
+<div class="card" id="rdetail" hidden></div>
+</section>
+</div>
+<div id="modal" hidden><div class="mbox"><p id="mmsg"></p><div class="mbtn"><button class="btn o" id="mno">Cancel</button><button class="btn" id="myes" style="background:#dc2626">Delete</button></div></div></div>
+<div id="toast"></div>
+
+<script>
+let KEY="";
+let S={sections:[],subjects:[],students:[],att:{}};
+function migrate(){
+  S.students.forEach(s=>{if(s.section&&!S.sections.includes(s.section))S.sections.push(s.section)});
+  let mig=false;
+  Object.keys(S.att).forEach(d=>{if(Object.values(S.att[d]).some(x=>typeof x==="string")){S.att[d]={General:S.att[d]};mig=true}});
+  if(mig&&!S.subjects.includes("General"))S.subjects.push("General");
+}
+function save(){if(!KEY)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(cloud)queueCloud()}
+function ask(msg){return new Promise(res=>{$("mmsg").textContent=msg;$("modal").hidden=false;const done=v=>{$("modal").hidden=true;res(v)};$("myes").onclick=()=>done(true);$("mno").onclick=()=>done(false)})}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const todayStr=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+$("date").value=todayStr();
+const ST=[["P","Present","✅"],["L","Late","⏰"],["A","Absent","❌"],["E","Excused","📝"],["D","Dropped","🚫"]];
+let tOut;
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(tOut);tOut=setTimeout(()=>t.classList.remove("show"),2400)}
+const nat=(a,b)=>a.localeCompare(b,undefined,{numeric:true});
+const match=(s,q)=>(s.id+" "+s.name).toLowerCase().includes(q.toLowerCase());
+
+function fillSel(id,arr,ph,keep){
+  const el=$(id),cur=el.value;
+  el.innerHTML=(ph?`<option value="">${ph}</option>`:"")+arr.map(x=>`<option>${esc(x)}</option>`).join("");
+  el.value=arr.includes(cur)?cur:(keep&&!ph&&arr.length?arr[0]:"");
+}
+function renderSelects(){
+  const secs=[...S.sections].sort(nat),subs=[...S.subjects].sort(nat);
+  fillSel("asec",secs,"",true);fillSel("asub",subs,"",true);
+  fillSel("ssecSel",secs,"Choose section…");fillSel("sfilt",secs,"All sections");
+}
+function curDay(){const d=$("date").value,sub=$("asub").value;return ((S.att[d]||{})[sub])||{}}
+function renderAtt(){
+  const sec=$("asec").value,sub=$("asub").value,d=$("date").value;
+  if(!S.sections.length||!S.subjects.length){
+    $("stats").innerHTML="";
+    $("abody").innerHTML=`<tr><td colspan="2" class="empty">Create at least one section folder and one subject first 📁<br><br><button class="btn" onclick="showTab('sec')">Go to Sections &amp; Subjects</button></td></tr>`;return;
+  }
+  const all=S.students.filter(s=>s.section===sec).sort((a,b)=>a.name.localeCompare(b.name));
+  const day=curDay(),c={P:0,L:0,A:0,E:0,D:0};
+  all.forEach(s=>{const v=ST.find(t=>t[1]===day[s.id]);if(v)c[v[0]]++});
+  const un=all.length-(c.P+c.L+c.A+c.E);
+  const items=[["Students",all.length,"var(--brand)"],["Present",c.P,"var(--p)"],["Late",c.L,"var(--l)"],["Absent",c.A,"var(--a)"],["Excused",c.E,"var(--e)"],["Unmarked",un,"var(--muted)"]];
+  $("stats").innerHTML=items.map(i=>`<div class="stat" style="--c:${i[2]}"><b>${i[1]}</b><span>${i[0]}</span></div>`).join("");
+  const list=all.filter(s=>match(s,$("asearch").value));
+  $("abody").innerHTML=list.length?list.map(s=>`<tr><td><b>${esc(s.name)}</b><br><span class="id">${esc(s.id)}</span></td><td><div class="chips">${ST.map(t=>`<button class="chip ${t[0]}${day[s.id]===t[1]?" on":""}" data-id="${esc(s.id)}" data-st="${t[1]}">${t[2]} ${t[1]}</button>`).join("")}</div></td></tr>`).join(""):`<tr><td colspan="2" class="empty">${all.length?"No students match your search.":"This section has no students yet. Add some in the Students tab 🎓"}</td></tr>`;
+}
+function renderStu(){
+  const q=$("ssearch").value,f=$("sfilt").value;
+  const list=S.students.filter(s=>match(s,q)&&(!f||s.section===f)).sort((a,b)=>nat(a.section,b.section)||a.name.localeCompare(b.name));
+  $("sbody").innerHTML=list.length?list.map(s=>`<tr><td class="id">${esc(s.id)}</td><td><b>${esc(s.name)}</b></td><td>📁 ${esc(s.section)}</td><td><button class="del" title="Delete" data-del="${esc(s.id)}">🗑️</button></td></tr>`).join(""):`<tr><td colspan="4" class="empty">${S.sections.length?"No students found.":"Create a section folder first in the Sections &amp; Subjects tab."}</td></tr>`;
+  $("scount").textContent="Students: "+list.length;
+}
+function renderSec(){
+  const secs=[...S.sections].sort(nat);
+  $("folders").innerHTML=secs.length?secs.map(x=>{const n=S.students.filter(s=>s.section===x).length;return `<div class="folder"><div class="ic">📁</div><b>${esc(x)}</b><span class="id">${n} student${n===1?"":"s"}</span><div class="acts"><button data-open="${esc(x)}">Open</button><button class="x" data-delsec="${esc(x)}">Delete</button></div></div>`}).join(""):`<div class="empty" style="grid-column:1/-1">No folders yet. Create one above, like 1A, 1B or 1C.</div>`;
+  $("pills").innerHTML=S.subjects.length?[...S.subjects].sort(nat).map(x=>`<span class="pill">📚 ${esc(x)}<button title="Remove" data-delsub="${esc(x)}">×</button></span>`).join(""):`<div class="empty" style="width:100%">No subjects yet. Add one above.</div>`;
+}
+function renderAll(){renderSelects();renderAtt();renderStu();renderSec()}
+function showTab(n){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.tab===n));
+  ["att","stu","sec"].forEach(i=>$(i).hidden=i!==n);
+}
+
+$("abody").onclick=e=>{
+  const b=e.target.closest(".chip");if(!b)return;
+  const d=$("date").value,sub=$("asub").value;if(!d)return toast("Pick a date first");
+  const day=((S.att[d]=S.att[d]||{})[sub]=S.att[d][sub]||{});
+  if(day[b.dataset.id]===b.dataset.st)delete day[b.dataset.id];else day[b.dataset.id]=b.dataset.st;
+  save();renderAtt();
+};
+$("allP").onclick=()=>{
+  const d=$("date").value,sub=$("asub").value,sec=$("asec").value;
+  if(!d||!sub||!sec)return toast("Choose a section, subject and date first");
+  const list=S.students.filter(s=>s.section===sec&&match(s,$("asearch").value));
+  if(!list.length)return toast("No students to mark");
+  const day=((S.att[d]=S.att[d]||{})[sub]=S.att[d][sub]||{});
+  list.forEach(s=>day[s.id]="Present");
+  save();renderAtt();toast(`Marked ${list.length} student(s) present`);
+};
+$("add").onclick=()=>{
+  const id=$("sid").value.trim(),name=$("sname").value.trim(),section=$("ssecSel").value;
+  if(!id||!name||!section)return toast("Please fill in ID, name and choose a section");
+  if(S.students.some(s=>s.id.toLowerCase()===id.toLowerCase()))return toast("That Student ID already exists");
+  S.students.push({id,name,section});save();
+  $("sid").value="";$("sname").value="";$("sid").focus();
+  renderAll();toast(`${name} added to ${section} ✔`);
+};
+["sid","sname"].forEach(i=>$(i).addEventListener("keydown",e=>{if(e.key==="Enter")$("add").click()}));
+$("sbody").onclick=async e=>{
+  const b=e.target.closest("[data-del]");if(!b)return;
+  const s=S.students.find(x=>x.id===b.dataset.del);
+  if(!s||!await ask(`Delete ${s.name} (${s.id}) and all their attendance records?`))return;
+  removeStudents([s.id]);save();renderAll();toast(`${s.name} deleted`);
+};
+function removeStudents(ids){
+  S.students=S.students.filter(x=>!ids.includes(x.id));
+  Object.values(S.att).forEach(d=>Object.values(d).forEach(sub=>ids.forEach(i=>delete sub[i])));
+}
+function addName(inputId,key,label){
+  const v=$(inputId).value.trim();
+  if(!v)return toast(`Type a ${label} name first`);
+  if(S[key].some(x=>x.toLowerCase()===v.toLowerCase()))return toast(`That ${label} already exists`);
+  S[key].push(v);$(inputId).value="";save();renderAll();toast(`${label[0].toUpperCase()+label.slice(1)} “${v}” created ✔`);
+}
+$("addsec").onclick=()=>addName("secname","sections","section");
+$("addsub").onclick=()=>addName("subname","subjects","subject");
+$("secname").addEventListener("keydown",e=>{if(e.key==="Enter")$("addsec").click()});
+$("subname").addEventListener("keydown",e=>{if(e.key==="Enter")$("addsub").click()});
+$("folders").onclick=async e=>{
+  const o=e.target.closest("[data-open]"),x=e.target.closest("[data-delsec]");
+  if(o){$("sfilt").value=o.dataset.open;$("ssecSel").value=o.dataset.open;renderStu();showTab("stu")}
+  if(x){
+    const name=x.dataset.delsec,ids=S.students.filter(s=>s.section===name).map(s=>s.id);
+    if(!await ask(`Delete folder ${name}${ids.length?` and its ${ids.length} student(s) with their attendance records`:""}?`))return;
+    removeStudents(ids);S.sections=S.sections.filter(s=>s!==name);save();renderAll();toast(`Folder ${name} deleted`);
+  }
+};
+$("pills").onclick=async e=>{
+  const b=e.target.closest("[data-delsub]");if(!b)return;
+  const name=b.dataset.delsub;
+  if(!await ask(`Remove subject ${name} and all attendance recorded under it?`))return;
+  S.subjects=S.subjects.filter(s=>s!==name);
+  Object.values(S.att).forEach(d=>delete d[name]);
+  save();renderAll();toast(`Subject ${name} removed`);
+};
+["asec","asub","date"].forEach(i=>$(i).addEventListener("input",renderAtt));
+$("asearch").addEventListener("input",renderAtt);
+$("ssearch").addEventListener("input",renderStu);
+$("sfilt").addEventListener("input",renderStu);
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
+$("theme").onclick=()=>{
+  const r=document.documentElement;
+  const dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+  r.dataset.theme=dark?"light":"dark";
+};
+/* ---- v2 additions ---- */
+let editId=null;const sel=new Set();
+function visible(){const sec=$("asec").value,q=$("asearch").value;return S.students.filter(s=>s.section===sec&&match(s,q)).map(s=>s.id)}
+const fmt=d=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const pct=c=>{const t=c.P+c.L+c.A+c.E;return t?Math.round((c.P+c.L)/t*100):null};
+const cards=i=>i.map(x=>`<div class="stat" style="--c:${x[2]}"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("");
+const pcol=p=>p===null?"var(--muted)":p>=90?"var(--p)":p>=75?"var(--l)":"var(--a)";
+$("rdate").value=todayStr();
+function ask(msg,ok,val){return new Promise(res=>{
+  $("mmsg").textContent=msg;let inp=null;
+  if(val!==undefined){inp=document.createElement("input");inp.value=val;inp.style.cssText="display:block;width:100%;margin-top:10px";$("mmsg").appendChild(inp);setTimeout(()=>inp.focus(),0)}
+  $("myes").textContent=ok||"Delete";$("myes").style.background=ok?"#16a34a":"#dc2626";$("modal").hidden=false;
+  const done=v=>{$("modal").hidden=true;res(v===true&&inp?inp.value.trim():v)};
+  $("myes").onclick=()=>done(true);$("mno").onclick=()=>done(false)})}
+function renderSelects(){
+  const secs=[...S.sections].sort(nat),subs=[...S.subjects].sort(nat);
+  fillSel("asec",secs,"",true);fillSel("asub",subs,"",true);
+  fillSel("ssecSel",secs,"Choose section…");fillSel("sfilt",secs,"All sections");
+  fillSel("rsec",secs,"All sections");fillSel("rsub",subs,"All subjects");
+}
+function renderAtt(){
+  const sec=$("asec").value;
+  if(!S.sections.length||!S.subjects.length){
+    $("stats").innerHTML="";
+    sel.clear();$("bulk").hidden=true;
+    $("abody").innerHTML=`<tr><td colspan="5" class="empty">Create at least one section folder and one subject first 📁<br><br><button class="btn" onclick="showTab('sec')">Go to Sections &amp; Subjects</button></td></tr>`;return;
+  }
+  const all=S.students.filter(s=>s.section===sec).sort((a,b)=>a.name.localeCompare(b.name));
+  const day=curDay(),c={P:0,L:0,A:0,E:0,D:0};
+  all.forEach(s=>{const v=ST.find(t=>t[1]===day[s.id]);if(v)c[v[0]]++});
+  const p=pct(c);
+  sel.forEach(i=>{if(!all.some(s=>s.id===i))sel.delete(i)});
+  $("bulk").hidden=!sel.size;$("bcount").textContent=sel.size+" selected";
+  const vv=visible();$("selall").checked=!!vv.length&&vv.every(i=>sel.has(i));
+  $("stats").innerHTML=cards([["Students",all.length,"var(--brand)"],["Present",c.P,"var(--p)"],["Absent",c.A,"var(--a)"],["Late",c.L,"var(--l)"],["Excused",c.E,"var(--e)"],["Dropped",c.D,"var(--muted)"],["Attendance",p===null?"–":p+"%",pcol(p)]]);
+  const list=all.filter(s=>match(s,$("asearch").value));
+  $("abody").innerHTML=list.length?list.map(s=>`<tr data-row="${esc(s.id)}" class="${sel.has(s.id)?"sel":""}${day[s.id]==="Dropped"?" drp":""}"><td><input type="checkbox" aria-label="Select ${esc(s.name)}" ${sel.has(s.id)?"checked":""}></td><td class="id">${esc(s.id)}</td><td><b>${esc(s.name)}</b></td><td><div class="chips">${ST.map(t=>`<button class="chip ${t[0]}${day[s.id]===t[1]?" on":""}" data-id="${esc(s.id)}" data-st="${t[1]}">${t[2]} ${t[1]}</button>`).join("")}</div></td><td><button class="del" title="Clear status" data-clr="${esc(s.id)}">↩️</button></td></tr>`).join(""):`<tr><td colspan="5" class="empty">${all.length?"No students match your search.":"This section has no students yet. Add some in the Students tab 🎓"}</td></tr>`;
+}
+$("abody").onclick=e=>{
+  const b=e.target.closest(".chip,[data-clr]");
+  if(!b){const r=e.target.closest("tr[data-row]");if(!r)return;const i=r.dataset.row;sel.has(i)?sel.delete(i):sel.add(i);return renderAtt()}
+  const d=$("date").value,sub=$("asub").value;if(!d||!sub)return toast("Pick a subject and date first");
+  const o=S.att[d]=S.att[d]||{},day=o[sub]=o[sub]||{},id=b.dataset.id||b.dataset.clr;
+  if(b.dataset.clr||day[id]===b.dataset.st)delete day[id];else day[id]=b.dataset.st;
+  save();renderAtt();toast("Attendance saved ✔");
+};
+$("allP").onclick=async()=>{
+  const d=$("date").value,sub=$("asub").value,sec=$("asec").value;
+  if(!d||!sub||!sec)return toast("Choose a section, subject and date first");
+  const list=S.students.filter(s=>s.section===sec&&match(s,$("asearch").value));
+  if(!list.length)return toast("No students to mark");
+  if(!await ask(`Mark ${list.length} student(s) as Present for ${sub} on ${d}?`,"Mark present"))return;
+  const o=S.att[d]=S.att[d]||{},day=o[sub]=o[sub]||{};
+  list.forEach(s=>day[s.id]="Present");
+  save();renderAtt();toast("Attendance saved ✔");
+};
+function renderStu(){
+  const q=$("ssearch").value,f=$("sfilt").value;
+  const list=S.students.filter(s=>match(s,q)&&(!f||s.section===f)).sort((a,b)=>nat(a.section,b.section)||a.name.localeCompare(b.name));
+  $("sbody").innerHTML=list.length?list.map(s=>`<tr><td class="id">${esc(s.id)}</td><td><b>${esc(s.name)}</b></td><td>📁 ${esc(s.section)}</td><td style="white-space:nowrap"><button class="del" title="Edit" data-edit="${esc(s.id)}">✏️</button><button class="del" title="Delete" data-del="${esc(s.id)}">🗑️</button></td></tr>`).join(""):`<tr><td colspan="4" class="empty">${S.sections.length?"No students found.":"Create a section folder first in the Sections &amp; Subjects tab."}</td></tr>`;
+  $("scount").textContent="Students: "+list.length;
+}
+function endEdit(){editId=null;$("sid").disabled=false;$("sid").value="";$("sname").value="";$("add").textContent="＋ Add student";$("cancelEdit").hidden=true}
+$("cancelEdit").onclick=endEdit;
+$("add").onclick=()=>{
+  const id=$("sid").value.trim(),name=$("sname").value.trim(),section=$("ssecSel").value;
+  if(!id||!name||!section)return toast("Please fill in ID, name and choose a section");
+  if(editId){const s=S.students.find(x=>x.id===editId);s.name=name;s.section=section;save();endEdit();renderAll();return toast("Student updated ✔")}
+  if(S.students.some(s=>s.id.toLowerCase()===id.toLowerCase()))return toast("That Student ID already exists");
+  S.students.push({id,name,section});save();
+  $("sid").value="";$("sname").value="";$("sid").focus();
+  renderAll();toast(`${name} added to ${section} ✔`);
+};
+$("sbody").onclick=async e=>{
+  const ed=e.target.closest("[data-edit]"),b=e.target.closest("[data-del]");
+  if(ed){const s=S.students.find(x=>x.id===ed.dataset.edit);if(!s)return;editId=s.id;$("sid").value=s.id;$("sid").disabled=true;$("sname").value=s.name;$("ssecSel").value=s.section;$("add").textContent="💾 Save changes";$("cancelEdit").hidden=false;$("sname").focus();return}
+  if(!b)return;
+  const s=S.students.find(x=>x.id===b.dataset.del);
+  if(!s||!await ask(`Delete ${s.name} (${s.id}) and all their attendance records?`))return;
+  if(editId===s.id)endEdit();
+  removeStudents([s.id]);save();renderAll();toast(`${s.name} deleted`);
+};
+function renderSec(){
+  const secs=[...S.sections].sort(nat);
+  $("folders").innerHTML=secs.length?secs.map(x=>{const n=S.students.filter(s=>s.section===x).length;return `<div class="folder"><div class="ic">📁</div><b>${esc(x)}</b><span class="id">${n} student${n===1?"":"s"}</span><div class="acts"><button data-open="${esc(x)}">Open</button><button data-rensec="${esc(x)}" title="Rename">✏️</button><button class="x" data-delsec="${esc(x)}" title="Delete">🗑️</button></div></div>`}).join(""):`<div class="empty" style="grid-column:1/-1">No folders yet. Create one above, like 1A, 1B or 1C.</div>`;
+  $("pills").innerHTML=S.subjects.length?[...S.subjects].sort(nat).map(x=>`<span class="pill">📚 ${esc(x)}<button title="Rename" data-rensub="${esc(x)}">✏️</button><button title="Delete" data-delsub="${esc(x)}">×</button></span>`).join(""):`<div class="empty" style="width:100%">No subjects yet. Add one above.</div>`;
+}
+async function renameItem(key,old,label){
+  const v=await ask(`Rename ${label} “${old}”`,"Save",old);
+  if(!v||v===old)return;
+  if(S[key].some(x=>x.toLowerCase()===v.toLowerCase()&&x!==old))return toast(`That ${label} already exists`);
+  S[key]=S[key].map(x=>x===old?v:x);
+  if(key==="sections")S.students.forEach(s=>{if(s.section===old)s.section=v});
+  else Object.values(S.att).forEach(d=>{if(d[old]){d[v]=d[old];delete d[old]}});
+  save();renderAll();toast(`Renamed to ${v} ✔`);
+}
+$("folders").onclick=async e=>{
+  const o=e.target.closest("[data-open]"),r=e.target.closest("[data-rensec]"),x=e.target.closest("[data-delsec]");
+  if(o){$("sfilt").value=o.dataset.open;$("ssecSel").value=o.dataset.open;renderStu();showTab("stu")}
+  if(r)renameItem("sections",r.dataset.rensec,"section");
+  if(x){
+    const name=x.dataset.delsec,ids=S.students.filter(s=>s.section===name).map(s=>s.id);
+    if(!await ask(`Delete folder ${name}${ids.length?` and its ${ids.length} student(s) with their attendance records`:""}?`))return;
+    removeStudents(ids);S.sections=S.sections.filter(s=>s!==name);save();renderAll();toast(`Folder ${name} deleted`);
+  }
+};
+$("pills").onclick=async e=>{
+  const r=e.target.closest("[data-rensub]"),b=e.target.closest("[data-delsub]");
+  if(r)return renameItem("subjects",r.dataset.rensub,"subject");
+  if(!b)return;
+  const name=b.dataset.delsub;
+  if(!await ask(`Remove subject ${name} and all attendance recorded under it?`))return;
+  S.subjects=S.subjects.filter(s=>s!==name);
+  Object.values(S.att).forEach(d=>delete d[name]);
+  save();renderAll();toast(`Subject ${name} removed`);
+};
+/* Reports */
+function range(){
+  const v=$("rdate").value||todayStr(),p=$("rper").value,dt=new Date(v+"T00:00");
+  if(p==="day")return[v,v,v];
+  if(p==="week"){const a=new Date(dt);a.setDate(dt.getDate()-(dt.getDay()+6)%7);const b=new Date(a);b.setDate(a.getDate()+6);return[fmt(a),fmt(b),fmt(a)+" to "+fmt(b)]}
+  if(p==="month")return[v.slice(0,7)+"-01",v.slice(0,7)+"-31",dt.toLocaleString("en",{month:"long",year:"numeric"})];
+  return["0000-00-00","9999-99-99","All dates"];
+}
+function repData(){
+  const[a,b,label]=range(),sec=$("rsec").value,sub=$("rsub").value,subs=sub?[sub]:S.subjects;
+  const rows=S.students.filter(s=>!sec||s.section===sec).sort((x,y)=>nat(x.section,y.section)||x.name.localeCompare(y.name)).map(s=>{
+    const c={P:0,L:0,A:0,E:0,D:0};
+    Object.keys(S.att).forEach(d=>{if(d<a||d>b)return;subs.forEach(u=>{const v=ST.find(t=>t[1]===(S.att[d][u]||{})[s.id]);if(v)c[v[0]]++})});
+    return{s,c,t:c.P+c.L+c.A+c.E,p:pct(c)};
+  });
+  return{rows,a,b,label};
+}
+function renderRep(){
+  const{rows,label}=repData();
+  $("rdetail").hidden=true;
+  $("rtitle").textContent=`${$("rsec").value||"All sections"} · ${$("rsub").value||"All subjects"} · ${label}`;
+  $("rbody").innerHTML=rows.length?rows.map(r=>`<tr data-sid="${esc(r.s.id)}" style="cursor:pointer"><td class="id">${esc(r.s.id)}</td><td><b>${esc(r.s.name)}</b><br><span class="id">${esc(r.s.section)}</span></td><td>${r.c.P}</td><td>${r.c.A}</td><td>${r.c.L}</td><td>${r.c.E}</td><td>${r.c.D}</td><td>${r.t}</td><td style="white-space:nowrap"><span class="meter"><i style="width:${r.p||0}%;background:${pcol(r.p)}"></i></span><b style="color:${pcol(r.p)}">${r.p===null?"–":r.p+"%"}</b>${r.p!==null&&r.p<75?" ⚠️":""}</td></tr>`).join(""):`<tr><td colspan="9" class="empty">No students to report on yet.</td></tr>`;
+}
+$("rbody").onclick=e=>{
+  const r=e.target.closest("tr[data-sid]");if(!r)return;
+  const id=r.dataset.sid,s=S.students.find(x=>x.id===id),[a,b]=range(),sub=$("rsub").value,subs=sub?[sub]:S.subjects,recs=[];
+  Object.keys(S.att).sort().forEach(d=>{if(d<a||d>b)return;subs.forEach(u=>{const st=(S.att[d][u]||{})[id];if(st)recs.push([d,u,st])})});
+  const c={P:0,L:0,A:0,E:0,D:0};recs.forEach(x=>c[ST.find(t=>t[1]===x[2])[0]]++);const p=pct(c);
+  $("rdetail").innerHTML=`<h2>🎓 ${esc(s.name)} <span class="id">${esc(s.id)} · ${esc(s.section)}</span></h2><div class="stats">${cards([["Total classes",recs.length,"var(--brand)"],["Present",c.P,"var(--p)"],["Absent",c.A,"var(--a)"],["Late",c.L,"var(--l)"],["Excused",c.E,"var(--e)"],["Dropped",c.D,"var(--muted)"],["Attendance",p===null?"–":p+"%",pcol(p)]])}</div><div class="scroll"><table><thead><tr><th>Date</th><th>Subject</th><th>Status</th></tr></thead><tbody>${recs.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1])}</td><td><span class="chip on ${ST.find(t=>t[1]===x[2])[0]}">${x[2]}</span></td></tr>`).join("")||`<tr><td colspan="3" class="empty">No records in this period.</td></tr>`}</tbody></table></div>`;
+  $("rdetail").hidden=false;$("rdetail").scrollIntoView({behavior:"smooth"});
+};
+["rsec","rsub","rper","rdate"].forEach(i=>$(i).addEventListener("input",renderRep));
+$("rprint").onclick=()=>{try{window.print()}catch(e){toast("Printing isn’t available here")}};
+$("rcsv").onclick=async()=>{
+  const{rows}=repData(),q=v=>`"${String(v).replace(/"/g,'""')}"`;
+  const lines=[["Student ID","Name","Section","Present","Absent","Late","Excused","Dropped","Total classes","Attendance %"].map(q).join(",")].concat(rows.map(r=>[r.s.id,r.s.name,r.s.section,r.c.P,r.c.A,r.c.L,r.c.E,r.c.D,r.t,r.p===null?"":r.p].map(q).join(",")));
+  const dl=window.claude?await window.claude.use("downloads"):null;
+  if(!dl){try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv"}));a.download="attendance-report.csv";document.body.appendChild(a);a.click();a.remove();return toast("Report downloaded ✔")}catch(e){return toast("Download isn’t available here. Try Print instead.")}}
+  try{await dl.save({filename:"attendance-report.csv",data:new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv"})});toast("Report ready ✔")}catch(e){if(!e||e.code!=="declined")toast("Couldn’t save the file")}
+};
+function renderAll(){renderSelects();renderAtt();renderStu();renderSec();renderRep()}
+function showTab(n){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.tab===n));
+  ["att","stu","sec","rep"].forEach(i=>$(i).hidden=i!==n);
+  if(n==="rep")renderRep();
+}
+
+/* ---- Bulk select ---- */
+function bulk(st){
+  const d=$("date").value,sub=$("asub").value;
+  if(!d||!sub)return toast("Pick a subject and date first");
+  if(!sel.size)return toast("Select students first");
+  const o=S.att[d]=S.att[d]||{},day=o[sub]=o[sub]||{},n=sel.size;
+  sel.forEach(id=>{if(st==="clear")delete day[id];else day[id]=st});
+  sel.clear();save();renderAtt();toast(st==="clear"?`Cleared ${n} student(s)`:`${n} student(s) marked ${st} ✔`);
+}
+$("bulk").onclick=e=>{const b=e.target.closest("[data-b]");if(b)return bulk(b.dataset.b);if(e.target.id==="bnone"){sel.clear();renderAtt()}};
+$("selall").onchange=()=>{const v=visible();v.forEach(i=>$("selall").checked?sel.add(i):sel.delete(i));renderAtt()};
+$("selun").onclick=()=>{const day=curDay();sel.clear();visible().forEach(i=>{if(!day[i])sel.add(i)});renderAtt();if(!sel.size)toast("Everyone is already marked ✔")};
+
+/* ---- Login ---- */
+const LSget=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const LSset=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}};
+const users=()=>{try{return JSON.parse(LSget("att_users")||"{}")}catch(e){return{}}};
+async function pwHash(pw,salt){
+  try{
+    const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);
+    const b=await crypto.subtle.deriveBits({name:"PBKDF2",salt:new TextEncoder().encode(salt),iterations:100000,hash:"SHA-256"},k,256);
+    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+  }catch(e){let h=5381;const s=salt+pw;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return"f"+h}
+}
+let mode="login";
+function authMode(m){
+  mode=m;$("aname").hidden=$("aconf").hidden=m!=="reg";
+  $("authgo").textContent=m==="reg"?"Create account":"Log in";
+  $("apass").autocomplete=m==="reg"?"new-password":"current-password";
+  $("atl").classList.toggle("on",m==="login");$("atr").classList.toggle("on",m==="reg");$("aerr").textContent="";
+}
+async function authGo(){
+  const un=$("auser").value.trim().toLowerCase(),pw=$("apass").value,U=users(),err=m=>{$("aerr").textContent=m};
+  if(!un||!pw)return err("Enter your username and password.");
+  if(mode==="reg"){
+    const nm=$("aname").value.trim();
+    if(!nm)return err("Enter your full name.");
+    if(!/^[a-z0-9._-]{3,}$/.test(un))return err("Username: at least 3 letters or numbers, no spaces.");
+    if(pw.length<6)return err("Password must be at least 6 characters.");
+    if(pw!==$("aconf").value)return err("Passwords don’t match.");
+    if(U[un])return err("That username is already taken.");
+    const salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
+    U[un]={name:nm,salt,hash:await pwHash(pw,salt)};
+    if(!LSset("att_users",JSON.stringify(U)))return err("This browser is blocking storage, so accounts can’t be saved.");
+    const old=LSget("attendance_v1");if(old&&Object.keys(U).length===1)LSset("attendance_v1_"+un,old);
+    enter(un);
+  }else{
+    const u=U[un];
+    if(!u||u.hash!==await pwHash(pw,u.salt))return err("Wrong username or password.");
+    enter(un);
+  }
+}
+function enter(un){
+  const u=users()[un];KEY="attendance_v1_"+un;
+  try{($("akeep").checked?localStorage:sessionStorage).setItem("att_session",un)}catch(e){}
+  S={sections:[],subjects:[],students:[],att:{}};
+  try{const r=JSON.parse(LSget(KEY)||"null");if(r)S=Object.assign(S,r)}catch(e){}
+  migrate();sel.clear();
+  $("who").textContent="👤 "+u.name;$("auth").hidden=true;$("app").hidden=false;
+  $("apass").value=$("aconf").value="";$("aerr").textContent="";
+  renderAll();showTab(S.sections.length&&S.subjects.length?"att":"sec");
+}
+function logout(){
+  try{localStorage.removeItem("att_session");sessionStorage.removeItem("att_session")}catch(e){}
+  KEY="";sel.clear();$("modal").hidden=true;$("app").hidden=true;$("auth").hidden=false;
+  $("auser").value="";authMode(Object.keys(users()).length?"login":"reg");
+}
+$("atl").onclick=()=>authMode("login");$("atr").onclick=()=>authMode("reg");
+$("authgo").onclick=authGo;$("logout").onclick=()=>window.FB?FB.signOut():logout();
+["aname","auser","apass","aconf"].forEach(i=>$(i).addEventListener("keydown",e=>{if(e.key==="Enter")authGo()}));
+/* ---- Cloud sync (signed-in Claude account, works on any device) ---- */
+let unsub=null,cloud=null,cloudId="",cloudName="",cloudT=0,saveTimer=null,saving=false,dirty=false,dead=false;
+const setSync=t=>{$("sync").textContent=t};
+function queueCloud(){if(dead)return;dirty=true;setSync("☁️ Saving…");clearTimeout(saveTimer);saveTimer=setTimeout(flush,700)}
+async function flush(){
+  if(!cloud||dead)return;
+  if(saving){saveTimer=setTimeout(flush,400);return}
+  if(!dirty)return;
+  saving=true;dirty=false;let failed=false;
+  try{cloudT=Date.now();await cloud.set({json:JSON.stringify(S),t:cloudT});setSync(dirty?"☁️ Saving…":"☁️ Saved")}
+  catch(e){
+    dirty=true;
+    if(e&&e.code==="unavailable"){failed=true;setSync("⚠️ Offline, will retry")}
+    else{dead=true;setSync("⚠️ Cloud save not allowed here")}
+  }
+  saving=false;
+  if(dirty&&!dead){clearTimeout(saveTimer);saveTimer=setTimeout(flush,failed?5000:400)}
+}
+async function cloudInit(){
+  if(!window.claude||!claude.use)return false;
+  try{
+    const[db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+    if(!db||!user)return false;
+    const me=await user.me();if(!me||!me.id)return false;
+    cloudId=me.id;cloudName=me.name||"Teacher";
+    cloud=db.doc("data/users/"+me.id+"/attendance");return true;
+  }catch(e){cloud=null;return false}
+}
+function enterCloud(){
+  if(unsub){unsub();unsub=null}KEY="attendance_v1_cloud_"+cloudId;
+  S={sections:[],subjects:[],students:[],att:{}};
+  try{const r=JSON.parse(LSget(KEY)||"null");if(r)S=Object.assign(S,r)}catch(e){}
+  migrate();sel.clear();
+  $("who").textContent="👤 "+cloudName;$("logout").hidden=!window.FB;$("auth").hidden=true;$("app").hidden=false;
+  renderAll();showTab(S.sections.length&&S.subjects.length?"att":"sec");
+  setSync("☁️ Connecting…");
+  const tm=setTimeout(()=>setSync("⚠️ Can’t reach cloud yet, using saved copy"),10000);
+  unsub=cloud.onSnapshot(snap=>{
+    if(!snap.metadata.fromCache)clearTimeout(tm);
+    if(!snap.exists){
+      if(snap.metadata.fromCache)return;
+      const old=LSget("attendance_v1");
+      if(old&&!S.students.length&&!S.sections.length){try{S=Object.assign(S,JSON.parse(old));migrate();renderAll()}catch(e){}}
+      if(S.sections.length||S.subjects.length||S.students.length)queueCloud();else setSync("☁️ Synced");
+      return;
+    }
+    if(snap.metadata.hasPendingWrites||dirty||saving)return;
+    const d=snap.data()||{};
+    if(!d.json||d.json===JSON.stringify(S)){setSync("☁️ Synced");return}
+    try{S=Object.assign({sections:[],subjects:[],students:[],att:{}},JSON.parse(d.json))}catch(e){return}
+    migrate();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+    renderAll();setSync("☁️ Synced");
+  },()=>setSync("⚠️ Cloud connection lost"));
+}
+/* ---- Social / phone login via Firebase ---- */
+const fbWait=()=>window.FB!==undefined?Promise.resolve():new Promise(r=>{addEventListener("fbinit",r,{once:true});setTimeout(r,8000)});
+function authErr(e){
+  const c=(e&&e.code)||"",m={
+    "auth/popup-closed-by-user":"","auth/cancelled-popup-request":"",
+    "auth/operation-not-allowed":"That sign-in method isn’t turned on in Firebase yet.",
+    "auth/unauthorized-domain":"Add this website’s domain in Firebase → Authentication → Settings → Authorized domains.",
+    "auth/account-exists-with-different-credential":"This email already has an account with another sign-in method. Use the one you used before.",
+    "auth/invalid-phone-number":"That phone number isn’t valid. Include the country code, e.g. +639171234567.",
+    "auth/too-many-requests":"Too many tries. Please wait a bit and try again.",
+    "auth/invalid-verification-code":"Wrong code. Please try again.","auth/code-expired":"That code expired. Send a new one.",
+    "auth/network-request-failed":"No internet connection."};
+  return c in m?m[c]:"Couldn’t sign in ("+(c||"error")+").";
+}
+const serr=m=>{$("serr").textContent=m};
+document.querySelectorAll("[data-s]").forEach(b=>b.onclick=async()=>{serr("");try{await FB.social(b.dataset.s)}catch(e){serr(authErr(e))}});
+$("phbtn").onclick=()=>{$("phbox").hidden=!$("phbox").hidden};
+$("psend").onclick=async()=>{
+  serr("");const n=$("pnum").value.replace(/[\s()-]/g,"");
+  if(!/^\+\d{8,15}$/.test(n))return serr("Enter your number with the country code, e.g. +639171234567.");
+  $("psend").disabled=true;
+  try{await FB.sendCode(n);$("pcode").hidden=$("pver").hidden=false;$("pcode").focus();serr("Code sent. Check your SMS.")}catch(e){serr(authErr(e))}
+  $("psend").disabled=false;
+};
+$("pver").onclick=async()=>{serr("");try{await FB.verify($("pcode").value.trim())}catch(e){serr(authErr(e))}};
+(async function boot(){
+  await fbWait();
+  if(window.FB){
+    const m=FB.methods||{};
+    document.querySelectorAll("[data-s]").forEach(b=>b.hidden=m[b.dataset.s]===false);
+    $("phbtn").hidden=m.phone===false;$("social").hidden=false;$("localauth").hidden=true;
+    FB.onUser(u=>{
+      if(u){cloudId=u.uid;cloudName=u.displayName||u.phoneNumber||u.email||"Teacher";cloud=FB.openDoc(u.uid);dead=false;enterCloud()}
+      else{if(unsub){unsub();unsub=null}cloud=null;KEY="";sel.clear();$("modal").hidden=true;$("app").hidden=true;$("auth").hidden=false;setSync("");serr("")}
+    });
+    return;
+  }
+  const c=window.FIREBASE_CONFIG;
+  if(c&&/^PASTE/.test(c.apiKey||"PASTE")){$("aerr").style.color="var(--muted)";$("aerr").textContent="Setup needed: paste your Firebase config in index.html to turn on Google, Facebook, Apple and phone login."}
+  let sv=null;try{sv=localStorage.getItem("att_session")||sessionStorage.getItem("att_session")}catch(e){}
+  if(sv&&users()[sv])enter(sv);else authMode(Object.keys(users()).length?"login":"reg");
+})();
+</script>
+<script type="module">
+const C=window.FIREBASE_CONFIG;let ok=false;
+try{
+  if(C&&C.apiKey&&!/^PASTE/.test(C.apiKey)){
+    const B="https://www.gstatic.com/firebasejs/10.12.2/";
+    const[{initializeApp},A,F]=await Promise.all([import(B+"firebase-app.js"),import(B+"firebase-auth.js"),import(B+"firebase-firestore.js")]);
+    const app=initializeApp(C),auth=A.getAuth(app);
+    let db;try{db=F.initializeFirestore(app,{localCache:F.persistentLocalCache()})}catch(e){db=F.getFirestore(app)}
+    let rv=null,conf=null;
+    window.FB={
+      methods:window.LOGIN_METHODS||{},
+      onUser:cb=>A.onAuthStateChanged(auth,cb),
+      signOut:()=>A.signOut(auth),
+      async social(n){
+        const p=n==="google"?new A.GoogleAuthProvider():n==="facebook"?new A.FacebookAuthProvider():new A.OAuthProvider("apple.com");
+        try{await A.signInWithPopup(auth,p)}catch(e){if(e.code==="auth/popup-blocked")return A.signInWithRedirect(auth,p);throw e}
+      },
+      async sendCode(num){
+        try{rv=rv||new A.RecaptchaVerifier(auth,"recap",{size:"invisible"});conf=await A.signInWithPhoneNumber(auth,num,rv)}
+        catch(e){try{rv&&rv.clear()}catch(_){}rv=null;throw e}
+      },
+      verify:c=>conf.confirm(c),
+      openDoc(uid){
+        const r=F.doc(db,"users",uid,"data","attendance");
+        return{set:d=>F.setDoc(r,d),onSnapshot:(n,e)=>F.onSnapshot(r,s=>n({exists:s.exists(),data:()=>s.data(),metadata:s.metadata}),e)};
+      }
+    };ok=true;
+  }
+}catch(e){console.error("Firebase failed to load",e)}
+if(!ok)window.FB=null;
+dispatchEvent(new Event("fbinit"));
+</script>
+</body>
+</html>
